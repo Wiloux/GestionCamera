@@ -21,4 +21,6 @@ public abstract class AView : MonoBehaviour
 
     public virtual CameraConfiguration GetConfiguration() { return null; }
 
+    public virtual void OnDrawGizmos() { }
+
 }

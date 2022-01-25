@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Camera camera;
+    private Camera mainCamera;
 
     private CameraConfiguration averageConfig;
 
     private List<AView> activeViews = new List<AView>();
-    public void AddView(AView view) { if (!activeViews.Contains(view)) { activeViews.Add(view); UpdateAverageConfiguration(); } }
-    public void RemoveView(AView view) { activeViews.Remove(view); UpdateAverageConfiguration(); }
+    public void AddView(AView view) { if (!activeViews.Contains(view)) { activeViews.Add(view); UpdateActiveViewsAverageConfiguration(); } }
+    public void RemoveView(AView view) { activeViews.Remove(view); UpdateActiveViewsAverageConfiguration(); }
+    public void ClearViews() { activeViews.Clear(); }
 
     private static CameraController _instance;
     public static CameraController Instance { get { return _instance; } }
@@ -22,7 +23,7 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        if (!camera && Camera.main) { camera = Camera.main; }
+        if (!mainCamera && Camera.main) { mainCamera = Camera.main; }
     }
 
     private void Update()
@@ -32,15 +33,17 @@ public class CameraController : MonoBehaviour
 
     private void SetCameraConfiguration()
     {
-        if (camera && averageConfig != null)
+        if (mainCamera && averageConfig != null)
         {
-            camera.fieldOfView = averageConfig.fov;
-            camera.transform.position = averageConfig.GetPosition();
-            camera.transform.rotation = averageConfig.GetRotation();
+            mainCamera.fieldOfView = averageConfig.fov;
+            mainCamera.transform.position = averageConfig.GetPosition();
+            mainCamera.transform.rotation = averageConfig.GetRotation();
         }
     }
 
-    public void UpdateAverageConfiguration()
+    public void UpdateActiveViewsAverageConfiguration() { averageConfig = AverageConfiguration(activeViews); }
+
+    public CameraConfiguration AverageConfiguration(List<AView> views)
     {
         Vector2 yawSum = Vector2.zero;
         float averagePitch = 0;
@@ -51,7 +54,7 @@ public class CameraController : MonoBehaviour
 
         float sumWeights = 0;
 
-        foreach (AView view in activeViews)
+        foreach (AView view in views)
         {
             CameraConfiguration viewConfig = view.GetConfiguration();
             if (viewConfig != null)
@@ -78,41 +81,42 @@ public class CameraController : MonoBehaviour
             }
         }
 
-        averageConfig = new CameraConfiguration(Vector2.SignedAngle(Vector2.right, yawSum), averagePitch / sumWeights, averageRoll / sumWeights, averagePivot / sumWeights, averageDistance / sumWeights, averageFOV / sumWeights);
+        return new CameraConfiguration(Vector2.SignedAngle(Vector2.right, yawSum), averagePitch / sumWeights, averageRoll / sumWeights, averagePivot / sumWeights, averageDistance / sumWeights, averageFOV / sumWeights);
     }
 
-    public Coroutine Lerp(AView a, AView b, float length, System.Action start = null, System.Action update = null, System.Action end = null)
+    public Coroutine Lerp(AView a, AView b, float duration, System.Action start = null, System.Action update = null, System.Action end = null)
     {
-        return StartCoroutine(LerpLoop(a, b, length, start, update, end));
+        return StartCoroutine(LerpLoop(a, b, duration, start, update, end));
     }
 
-    private IEnumerator LerpLoop(AView a, AView b, float length, System.Action start = null, System.Action update = null, System.Action end = null)
+    private IEnumerator LerpLoop(AView a, AView b, float duration, System.Action start = null, System.Action update = null, System.Action end = null)
     {
         start?.Invoke();
 
-        if (a && b && length > 0)
+        if (a && b && duration > 0)
         {
-            activeViews = new List<AView>();
+            List<AView> views = new List<AView>();
 
-            AddView(a);
-            AddView(b);
+            views.Add(a);
+            views.Add(b);
 
             float weightA = a.weight;
             float weightB = b.weight;
 
             a.weight = weightA;
             b.weight = 0;
-            UpdateAverageConfiguration();
+
+            averageConfig = AverageConfiguration(views);
 
             float tx = Time.timeSinceLevelLoad;
             float elapsedTime = 0;
-            while (elapsedTime < length)
+            while (elapsedTime < duration)
             {
                 update?.Invoke();
 
-                a.weight = (1 - (elapsedTime / length)) * weightA;
-                b.weight = (elapsedTime / length) * weightB;
-                UpdateAverageConfiguration();
+                a.weight = (1 - (elapsedTime / duration)) * weightA;
+                b.weight = (elapsedTime / duration) * weightB;
+                averageConfig = AverageConfiguration(views);
 
                 elapsedTime += Time.timeSinceLevelLoad - tx;
                 tx = Time.timeSinceLevelLoad;
@@ -122,22 +126,23 @@ public class CameraController : MonoBehaviour
 
             a.weight = 0;
             b.weight = weightB;
-            UpdateAverageConfiguration();
+            averageConfig = AverageConfiguration(views);
+            activeViews = views;
         }
 
         end?.Invoke();
     }
 
-    public void DrawGizmos(Color color)
+    public void OnDrawGizmos()
     {
-        if (!camera || averageConfig != null) { return; }
+        if (!mainCamera || averageConfig == null) { return; }
 
-        Gizmos.color = color;
+        Gizmos.color = Color.blue;
         Gizmos.DrawSphere(averageConfig.pivot, 0.25f);
         Vector3 position = averageConfig.GetPosition();
         Gizmos.DrawLine(averageConfig.pivot, position);
         Gizmos.matrix = Matrix4x4.TRS(position, averageConfig.GetRotation(), Vector3.one);
-        Gizmos.DrawFrustum(Vector3.zero, averageConfig.fov, 0.5f, 0f, Camera.main.aspect);
+        Gizmos.DrawFrustum(Vector3.zero, averageConfig.fov, 0.5f, 0f, mainCamera.aspect);
         Gizmos.matrix = Matrix4x4.identity;
     }
 }

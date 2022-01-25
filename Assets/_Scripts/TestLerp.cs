@@ -16,12 +16,13 @@ public class TestLerp : MonoBehaviour
         {
             CameraController.Instance.ClearViews();
             CameraController.Instance.AddView(viewA);
+            CameraController.Instance.UpdateActiveViewsAverageConfiguration();
         }
     }
 
     void Update()
     {
         if(!isLerping && CameraController.Instance && Input.GetKeyDown(KeyCode.Space))
-            CameraController.Instance.Lerp(viewA, viewB, duration, delegate { isLerping = true; }, null, delegate { isLerping = false; });
+            CameraController.Instance.ChangeTarget(new List<AView> { viewB }, duration, 10, delegate { isLerping = true; }, null, delegate { isLerping = false; });
     }
 }

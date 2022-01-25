@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
+    public Transform target;
+
     private Camera mainCamera;
 
     private CameraConfiguration averageConfig;
@@ -31,6 +33,11 @@ public class CameraController : MonoBehaviour
         SetCameraConfiguration();
     }
 
+    public void ChangeTarget(/*Transform newTarget,*/ List<AView> newActiveViews, float transitionDuration, float transitionDamping, System.Action transitionStart = null, System.Action transitionUpdate = null, System.Action transitionEnd = null)
+    {
+        Lerp(newActiveViews, transitionDuration, transitionDamping, transitionStart, transitionUpdate, transitionEnd);
+    }
+
     private void SetCameraConfiguration()
     {
         if (mainCamera && averageConfig != null)
@@ -45,6 +52,8 @@ public class CameraController : MonoBehaviour
 
     public CameraConfiguration AverageConfiguration(List<AView> views)
     {
+        if (views.Count == 0) { return null; }
+
         Vector2 yawSum = Vector2.zero;
         float averagePitch = 0;
         float averageRoll = 0;
@@ -54,6 +63,7 @@ public class CameraController : MonoBehaviour
 
         float sumWeights = 0;
 
+        int validViews = 0;
         foreach (AView view in views)
         {
             CameraConfiguration viewConfig = view.GetConfiguration();
@@ -78,59 +88,81 @@ public class CameraController : MonoBehaviour
 
                 // Sum of all Views Weights -> used in averaging later
                 sumWeights += view.weight;
+
+                validViews++;
             }
         }
+
+        if (validViews == 0) { return null; }
 
         return new CameraConfiguration(Vector2.SignedAngle(Vector2.right, yawSum), averagePitch / sumWeights, averageRoll / sumWeights, averagePivot / sumWeights, averageDistance / sumWeights, averageFOV / sumWeights);
     }
 
-    public Coroutine Lerp(AView a, AView b, float duration, System.Action start = null, System.Action update = null, System.Action end = null)
+    public CameraConfiguration AverageConfiguration(CameraConfiguration configA, float weightA, CameraConfiguration configB, float weightB)
     {
-        return StartCoroutine(LerpLoop(a, b, duration, start, update, end));
+        if (configA == null || configB == null) { return null; }
+
+        // Average Pitch and Roll
+        float averagePitch = configA.pitch * weightA + configB.pitch * weightB;
+        float averageRoll = configA.roll * weightA + configB.roll * weightB;
+
+        // Average Yaw
+        Vector2 yawSum = new Vector2(Mathf.Cos(configA.yaw * Mathf.Deg2Rad),
+        Mathf.Sin(configA.yaw * Mathf.Deg2Rad)) * weightA;
+        yawSum += new Vector2(Mathf.Cos(configB.yaw * Mathf.Deg2Rad),
+        Mathf.Sin(configB.yaw * Mathf.Deg2Rad)) * weightB;
+
+        // Average Pivot
+        Vector3 averagePivot = configA.pivot * weightA + configB.pivot * weightB;
+
+        // Average Distance
+        float averageDistance = configA.distance * weightA + configB.distance * weightB;
+
+        // Average FOV
+        float averageFOV = configA.fov * weightA + configB.fov * weightB;
+
+        // Sum of all Views Weights -> used in averaging later
+        float sumWeights = weightA + weightB;
+
+        return new CameraConfiguration(Vector2.SignedAngle(Vector2.right, yawSum), averagePitch / sumWeights, averageRoll / sumWeights, averagePivot / sumWeights, averageDistance / sumWeights, averageFOV / sumWeights);
     }
 
-    private IEnumerator LerpLoop(AView a, AView b, float duration, System.Action start = null, System.Action update = null, System.Action end = null)
+    public Coroutine Lerp(List<AView> newViews, float duration, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
     {
-        start?.Invoke();
+        return StartCoroutine(LerpLoop(new CameraConfiguration(averageConfig), AverageConfiguration(newViews), duration, speed, start, update, delegate { end?.Invoke(); activeViews = new List<AView>(newViews); }));
+    }
 
-        if (a && b && duration > 0)
+    private IEnumerator LerpLoop(CameraConfiguration configA, CameraConfiguration configB, float duration, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
+    {
+        if (configA != null && configB != null && duration > 0 && speed > 0)
         {
-            List<AView> views = new List<AView>();
+            start?.Invoke();
 
-            views.Add(a);
-            views.Add(b);
+            averageConfig = configA;
 
-            float weightA = a.weight;
-            float weightB = b.weight;
-
-            a.weight = weightA;
-            b.weight = 0;
-
-            averageConfig = AverageConfiguration(views);
+            float weight = 0;
 
             float tx = Time.timeSinceLevelLoad;
             float elapsedTime = 0;
-            while (elapsedTime < duration)
+            while (weight < 0.99f)
             {
                 update?.Invoke();
 
-                a.weight = (1 - (elapsedTime / duration)) * weightA;
-                b.weight = (elapsedTime / duration) * weightB;
-                averageConfig = AverageConfiguration(views);
+                float deltaTime = Time.timeSinceLevelLoad - tx;
 
-                elapsedTime += Time.timeSinceLevelLoad - tx;
+                weight += (1 - weight) * speed * deltaTime;
+                averageConfig = AverageConfiguration(configA, 1 - weight, configB, weight);
+
+                elapsedTime += deltaTime;
                 tx = Time.timeSinceLevelLoad;
 
                 yield return null;
             }
 
-            a.weight = 0;
-            b.weight = weightB;
-            averageConfig = AverageConfiguration(views);
-            activeViews = views;
-        }
+            averageConfig = configB;
 
-        end?.Invoke();
+            end?.Invoke();
+        }
     }
 
     public void OnDrawGizmos()
@@ -170,6 +202,16 @@ public class CameraConfiguration
         pivot = Vector3.zero;
         distance = 0;
         fov = 90;
+    }
+
+    public CameraConfiguration(CameraConfiguration config)
+    {
+        yaw = config.yaw;
+        pitch = config.pitch;
+        roll = config.roll;
+        pivot = config.pivot;
+        distance = config.distance;
+        fov = config.fov;
     }
 
     public CameraConfiguration(float yaw, float pitch, float roll)

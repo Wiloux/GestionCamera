@@ -15,10 +15,10 @@ public class FixedFollowView : AView
 
     public Transform target;
 
-    public GameObject centralPoint;
+    private Transform centralPoint;
 
-    public float yawOffsetMax = 50;
-    public float pitchOffsetMax = 50;
+    [Range(0, 90)] public float yawOffsetMax = 10;
+    [Range(0, 90)] public float pitchOffsetMax = 10;
 
     public float CalculateYaw(Transform target)
     {
@@ -38,16 +38,44 @@ public class FixedFollowView : AView
         return -Mathf.Asin(dir.y) * Mathf.Rad2Deg;
     }
 
+    private void Start()
+    {
+        centralPoint = new GameObject("Follow").transform;
+        centralPoint.parent = transform;
+
+        //centralPoint.position = transform.position + (target.position - transform.position).normalized;
+        centralPoint.position = transform.position + transform.forward;
+        transform.LookAt(target);
+
+        pitch = CalculatePitch(centralPoint);
+        yaw = CalculateYaw(centralPoint);
+    }
+
     private void Update()
     {
-      pitch = CalculatePitch(target);
-      yaw = CalculateYaw(target);
-        if (CameraController.Instance)
+        float deltaPitch = CalculatePitch(centralPoint) - CalculatePitch(target);
+
+        float deltaYaw = CalculateYaw(target) - CalculateYaw(centralPoint);
+        if (deltaYaw > 180) { while (deltaYaw > 180) { deltaYaw -= 360; } }
+        if (deltaYaw < -180) { while (deltaYaw < -180) { deltaYaw += 360; } }
+
+        if (Mathf.Abs(deltaPitch) > pitchOffsetMax || Mathf.Abs(deltaYaw) > yawOffsetMax)
         {
-            CameraController.Instance.UpdateActiveViewsAverageConfiguration();
+            float anglePitch = Mathf.Abs(deltaPitch) > pitchOffsetMax ? Mathf.Sign(deltaPitch) * pitchOffsetMax : 0;
+            float angleYaw = Mathf.Abs(deltaYaw) > yawOffsetMax ? Mathf.Sign(-deltaYaw) * yawOffsetMax : 0;
+
+            transform.LookAt(transform.position + Quaternion.Euler(anglePitch, angleYaw, 0) * (target.position - transform.position));
         }
-       
+
+        pitch = CalculatePitch(centralPoint);
+        yaw = CalculateYaw(centralPoint);
+
+        if (Input.GetKey(KeyCode.W)) { target.position += Vector3.up * Time.deltaTime * 3; }
+        if (Input.GetKey(KeyCode.S)) { target.position += -Vector3.up * Time.deltaTime * 3; }
+        if (Input.GetKey(KeyCode.D)) { target.position += Vector3.right * Time.deltaTime * 3; }
+        if (Input.GetKey(KeyCode.A)) { target.position += -Vector3.right * Time.deltaTime * 3; }
     }
+
     public override void OnDrawGizmos()
     {
         CameraConfiguration config = GetConfiguration();
@@ -55,7 +83,15 @@ public class FixedFollowView : AView
         if (!Camera.main || config == null) { return; }
 
         Gizmos.color = Color.blue;
+
         Gizmos.DrawSphere(config.pivot, 0.175f);
+
+        if (centralPoint)
+        {
+            Gizmos.DrawSphere(centralPoint.position, 0.1f);
+            Gizmos.DrawLine(transform.position, transform.position - (transform.position - centralPoint.position).normalized * 100);
+        }
+
         Vector3 position = config.GetPosition();
         Gizmos.DrawLine(config.pivot, position);
         Gizmos.matrix = Matrix4x4.TRS(position, config.GetRotation(), Vector3.one);

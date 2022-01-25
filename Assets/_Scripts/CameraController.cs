@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform target;
+    public float speed = 3;
 
     private Camera mainCamera;
 
     private CameraConfiguration averageConfig;
 
     private List<AView> activeViews = new List<AView>();
-    public void AddView(AView view) { if (!activeViews.Contains(view)) { activeViews.Add(view); UpdateActiveViewsAverageConfiguration(); } }
-    public void RemoveView(AView view) { activeViews.Remove(view); UpdateActiveViewsAverageConfiguration(); }
+    public void AddView(AView view) { if (!activeViews.Contains(view)) { activeViews.Add(view); } }
+    public void RemoveView(AView view) { activeViews.Remove(view); }
     public void ClearViews() { activeViews.Clear(); }
+    public void SetViews(List<AView> newViews) { activeViews = newViews; }
 
     private static CameraController _instance;
     public static CameraController Instance { get { return _instance; } }
@@ -30,12 +31,10 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        SetCameraConfiguration();
-    }
+        float s = speed * Time.deltaTime;
+        averageConfig = (s < 1) ? AverageConfiguration(averageConfig, (1 - (speed * Time.deltaTime)), AverageConfiguration(activeViews), (speed * Time.deltaTime)) : AverageConfiguration(activeViews);
 
-    public void ChangeTarget(/*Transform newTarget,*/ List<AView> newActiveViews, float transitionDuration, float transitionDamping, System.Action transitionStart = null, System.Action transitionUpdate = null, System.Action transitionEnd = null)
-    {
-        Lerp(newActiveViews, transitionDuration, transitionDamping, transitionStart, transitionUpdate, transitionEnd);
+        SetCameraConfiguration();
     }
 
     private void SetCameraConfiguration()
@@ -47,8 +46,6 @@ public class CameraController : MonoBehaviour
             mainCamera.transform.rotation = averageConfig.GetRotation();
         }
     }
-
-    public void UpdateActiveViewsAverageConfiguration() { averageConfig = AverageConfiguration(activeViews); }
 
     public CameraConfiguration AverageConfiguration(List<AView> views)
     {
@@ -127,14 +124,15 @@ public class CameraController : MonoBehaviour
         return new CameraConfiguration(Vector2.SignedAngle(Vector2.right, yawSum), averagePitch / sumWeights, averageRoll / sumWeights, averagePivot / sumWeights, averageDistance / sumWeights, averageFOV / sumWeights);
     }
 
-    public Coroutine Lerp(List<AView> newViews, float duration, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
+    /*
+    public Coroutine Lerp(List<AView> newViews, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
     {
-        return StartCoroutine(LerpLoop(new CameraConfiguration(averageConfig), AverageConfiguration(newViews), duration, speed, start, update, delegate { end?.Invoke(); activeViews = new List<AView>(newViews); }));
+        return StartCoroutine(LerpLoop(new CameraConfiguration(averageConfig), AverageConfiguration(newViews), speed, start, update, delegate { end?.Invoke(); activeViews = new List<AView>(newViews); }));
     }
 
-    private IEnumerator LerpLoop(CameraConfiguration configA, CameraConfiguration configB, float duration, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
+    private IEnumerator LerpLoop(CameraConfiguration configA, CameraConfiguration configB, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
     {
-        if (configA != null && configB != null && duration > 0 && speed > 0)
+        if (configA != null && configB != null && speed > 0)
         {
             start?.Invoke();
 
@@ -150,8 +148,8 @@ public class CameraController : MonoBehaviour
 
                 float deltaTime = Time.timeSinceLevelLoad - tx;
 
-                weight += (1 - weight) * speed * deltaTime;
-                averageConfig = AverageConfiguration(configA, 1 - weight, configB, weight);
+                averageConfig = AverageConfiguration(configA, 1 - weight, configB,weight);
+                weight += speed * deltaTime;
 
                 elapsedTime += deltaTime;
                 tx = Time.timeSinceLevelLoad;
@@ -164,12 +162,13 @@ public class CameraController : MonoBehaviour
             end?.Invoke();
         }
     }
+    */
 
     public void OnDrawGizmos()
     {
         if (!mainCamera || averageConfig == null) { return; }
 
-        Gizmos.color = Color.blue;
+        Gizmos.color = Color.red;
         Gizmos.DrawSphere(averageConfig.pivot, 0.25f);
         Vector3 position = averageConfig.GetPosition();
         Gizmos.DrawLine(averageConfig.pivot, position);

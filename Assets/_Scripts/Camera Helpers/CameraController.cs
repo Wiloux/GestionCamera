@@ -124,46 +124,6 @@ public class CameraController : MonoBehaviour
         return new CameraConfiguration(Vector2.SignedAngle(Vector2.right, yawSum), averagePitch / sumWeights, averageRoll / sumWeights, averagePivot / sumWeights, averageDistance / sumWeights, averageFOV / sumWeights);
     }
 
-    /*
-    public Coroutine Lerp(List<AView> newViews, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
-    {
-        return StartCoroutine(LerpLoop(new CameraConfiguration(averageConfig), AverageConfiguration(newViews), speed, start, update, delegate { end?.Invoke(); activeViews = new List<AView>(newViews); }));
-    }
-
-    private IEnumerator LerpLoop(CameraConfiguration configA, CameraConfiguration configB, float speed, System.Action start = null, System.Action update = null, System.Action end = null)
-    {
-        if (configA != null && configB != null && speed > 0)
-        {
-            start?.Invoke();
-
-            averageConfig = configA;
-
-            float weight = 0;
-
-            float tx = Time.timeSinceLevelLoad;
-            float elapsedTime = 0;
-            while (weight < 0.99f)
-            {
-                update?.Invoke();
-
-                float deltaTime = Time.timeSinceLevelLoad - tx;
-
-                averageConfig = AverageConfiguration(configA, 1 - weight, configB,weight);
-                weight += speed * deltaTime;
-
-                elapsedTime += deltaTime;
-                tx = Time.timeSinceLevelLoad;
-
-                yield return null;
-            }
-
-            averageConfig = configB;
-
-            end?.Invoke();
-        }
-    }
-    */
-
     public void OnDrawGizmos()
     {
         if (!mainCamera || averageConfig == null) { return; }

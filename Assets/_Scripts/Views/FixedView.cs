@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class FixedView : AView
 {
-    public float yaw;
-    public float pitch;
-    public float roll;
+    [Range(-180, 180)] public float yaw;
+    [Range(-180, 180)] public float pitch;
+    [Range(-180, 180)] public float roll;
     [Range(90, 180)] public float fov = 90;
 
     public override CameraConfiguration GetConfiguration() { return new CameraConfiguration(yaw, pitch, roll, transform.position, fov); }

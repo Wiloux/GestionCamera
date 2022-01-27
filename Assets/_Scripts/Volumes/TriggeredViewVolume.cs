@@ -6,10 +6,14 @@ using UnityEngine;
 public class TriggeredViewVolume : AViewVolume
 {
     public LayerMask target = 0;
+    private int targetLayer = 0;
+
     public bool gizmoFilled = false;
 
     private void Start() 
-    { 
+    {
+        targetLayer = (int)Mathf.Log(target.value, 2);
+
         gameObject.GetComponent<Collider>().isTrigger = true;
         gameObject.GetComponent<Rigidbody>().isKinematic = true;
 
@@ -32,8 +36,8 @@ public class TriggeredViewVolume : AViewVolume
 
     }
 
-    private void OnTriggerEnter(Collider other) { if(other.gameObject.layer == target) { SetActive(true); } }
-    private void OnTriggerExit(Collider other) { if (other.gameObject.layer == target) { SetActive(false); } }
+    private void OnTriggerEnter(Collider other) { if (other.gameObject.layer == targetLayer) { SetActive(true); } }
+    private void OnTriggerExit(Collider other) { if (other.gameObject.layer == targetLayer) { SetActive(false); } }
 
     private void OnDrawGizmos()
     {
@@ -45,7 +49,7 @@ public class TriggeredViewVolume : AViewVolume
             if (boxCollider)
             {
                 if (gizmoFilled)
-                { Gizmos.DrawCube(transform.position + boxCollider.center, Vector3.Scale(boxCollider.size, transform.localScale)); }
+                { Gizmos.color *= new Vector4(1, 1, 1, 0.3f); Gizmos.DrawCube(transform.position + boxCollider.center, Vector3.Scale(boxCollider.size, transform.localScale)); }
                 else
                 { Gizmos.DrawWireCube(transform.position + boxCollider.center, Vector3.Scale(boxCollider.size, transform.localScale)); }
                 return;

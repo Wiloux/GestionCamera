@@ -10,8 +10,18 @@ public class CameraController : MonoBehaviour
 
     private CameraConfiguration averageConfig;
 
+    private bool isCutRequested = false;
+    public void Cut() { isCutRequested = true; }
+
     private List<AView> activeViews = new List<AView>();
-    public void AddView(AView view) { if (!activeViews.Contains(view)) { activeViews.Add(view); } }
+    public void AddView(AView view) 
+    { 
+        if (!activeViews.Contains(view)) 
+        { 
+            activeViews.Add(view);
+            if (averageConfig == null) { averageConfig = view.GetConfiguration(); }
+        } 
+    }
     public void RemoveView(AView view) { activeViews.Remove(view); }
     public void ClearViews() { activeViews.Clear(); }
     public void SetViews(List<AView> newViews) { activeViews = newViews; }
@@ -33,6 +43,8 @@ public class CameraController : MonoBehaviour
     {
         float s = speed * Time.deltaTime;
         averageConfig = (s < 1) ? AverageConfiguration(averageConfig, (1 - (speed * Time.deltaTime)), AverageConfiguration(activeViews), (speed * Time.deltaTime)) : AverageConfiguration(activeViews);
+
+        if (isCutRequested) { averageConfig = AverageConfiguration(activeViews); isCutRequested = false; }
 
         SetCameraConfiguration();
     }

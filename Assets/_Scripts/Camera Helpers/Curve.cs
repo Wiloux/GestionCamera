@@ -15,7 +15,7 @@ public class Curve : MonoBehaviour
     {
         if (!a || !b || !c || !d || t < 0) { return Vector3.zero; }
 
-        return MathUtils.CubicBezier(a.position, b.position, c.position, d.position, t);
+        return MathUtils.CubicBezier(a.localPosition, b.localPosition, c.localPosition, d.localPosition, t);
     }
 
     public Vector3 GetPosition(float t, Matrix4x4 localToWorldMatrix)
@@ -43,7 +43,7 @@ public class Curve : MonoBehaviour
         {
             float t0 = (float)i / echantillions;
             float t1 = (float)(i + 1) / echantillions;
-            Gizmos.DrawLine(GetPosition(t0), GetPosition(t1));
+            Gizmos.DrawLine(GetPosition(t0, transform.localToWorldMatrix), GetPosition(t1, transform.localToWorldMatrix));
         }
     }
 }

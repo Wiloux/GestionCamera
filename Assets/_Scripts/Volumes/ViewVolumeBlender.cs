@@ -43,5 +43,25 @@ public class ViewVolumeBlender : MonoBehaviour
         _instance = this;
     }
 
+    public void Update()
+    {
+        if (activeViewVolumes.Count > 0)
+        {
+            AViewVolume maxPriorityVolume = activeViewVolumes[0];
+            for (int i = 1; i < activeViewVolumes.Count; i++)
+            { if (activeViewVolumes[i].priority > maxPriorityVolume.priority) { maxPriorityVolume = activeViewVolumes[i]; }}
 
+            foreach (AViewVolume volume in activeViewVolumes)
+            {
+                if (volume.priority < maxPriorityVolume.priority) { volume.view.weight = 0; continue; }
+                volume.view.weight = Mathf.Max(volume.view.weight, volume.ComputeSelfWeight());
+            }
+        }
+    }
+
+    private void OnGUI()
+    {
+        foreach (AViewVolume volume in activeViewVolumes)
+        { GUILayout.Label(volume.gameObject.name); }
+    }
 }

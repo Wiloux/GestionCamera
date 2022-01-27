@@ -46,7 +46,7 @@ public class FreeFollowView : AView
 
             curvePosition += Time.deltaTime * Input.GetAxis("Vertical") * curveSpeed;
             curvePosition = Mathf.Clamp01(curvePosition);
-            transform.position = curve.GetPosition(curvePosition, Matrix4x4.TRS(target.position + -Vector3.up, Quaternion.Euler(0, yaw, 0), Vector3.one));
+            transform.position = curve.GetPosition(curvePosition, Matrix4x4.TRS(target.position - Vector3.up, Quaternion.Euler(0, yaw, 0), Vector3.one));
 
             FreeFollowConfig avgConfig = LerpConfiguration(curvePosition < 0.5f ? middleConfiguration : topConfiguration, curvePosition < 0.5f ? bottomConfiguration : middleConfiguration, curvePosition * 2 - (curvePosition < 0.5f ? 0 : 1));
 

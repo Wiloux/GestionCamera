@@ -262,7 +262,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   priority: 1
   view: {fileID: 513313002}
-  isCutOnSwitch: 0
+  isCutOnSwitch: 1
   target:
     serializedVersion: 2
     m_Bits: 64
@@ -2119,7 +2119,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   priority: 1
   view: {fileID: 711428148}
-  isCutOnSwitch: 1
+  isCutOnSwitch: 0
   outerRadius: 19.61
   innerRadius: 9.23
   target: {fileID: 1504263159}
@@ -2669,7 +2669,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   priority: 1
   view: {fileID: 960014050}
-  isCutOnSwitch: 0
+  isCutOnSwitch: 1
   target:
     serializedVersion: 2
     m_Bits: 64

@@ -35,13 +35,13 @@ public class FreeFollowView : AView
     {
         if (curve && target)
         {
-            yaw += Time.deltaTime * -Input.GetAxis("Horizontal") * yawSpeed;
+            yaw += -Input.GetAxis("Mouse X") * yawSpeed;
             if (yaw > 180) { while (yaw > 180) { yaw -= 360; } }
             if (yaw < -180) { while (yaw < -180) { yaw += 360; } }
 
-            curvePosition += Time.deltaTime * Input.GetAxis("Vertical") * curveSpeed;
+            curvePosition += -Input.GetAxis("Mouse Y") * curveSpeed;
             curvePosition = Mathf.Clamp01(curvePosition);
-            transform.position = curve.GetPosition(curvePosition, Matrix4x4.TRS(target.position - Vector3.up, Quaternion.Euler(0, yaw, 0), Vector3.one));
+            transform.position = curve.GetPosition(curvePosition, Matrix4x4.TRS(target.position, Quaternion.Euler(0, 180 + yaw, 0), Vector3.one));
 
             FreeFollowConfig avgConfig = null;
             if (curvePosition < 0.5f) { avgConfig = LerpConfiguration(middleConfiguration, bottomConfiguration, curvePosition * 2); }

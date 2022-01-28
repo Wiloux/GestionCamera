@@ -15,8 +15,8 @@ public class FreeFollowView : AView
     [System.Serializable]
     public class FreeFollowConfig
     {
-        [Range(0, 360)] public float roll = 0;
-        [Range(0, 360)] public float pitch = 0;
+        public float roll = 0;
+        public float pitch = 0;
         [Range(90f, 180f)] public float fov = 90f;
     }
 

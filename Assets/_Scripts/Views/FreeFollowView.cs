@@ -31,11 +31,6 @@ public class FreeFollowView : AView
 
     public Transform target;
 
-    private void Awake()
-    {
-        
-    }
-
     private void Update()
     {
         if (curve && target)
@@ -48,11 +43,16 @@ public class FreeFollowView : AView
             curvePosition = Mathf.Clamp01(curvePosition);
             transform.position = curve.GetPosition(curvePosition, Matrix4x4.TRS(target.position - Vector3.up, Quaternion.Euler(0, yaw, 0), Vector3.one));
 
-            FreeFollowConfig avgConfig = LerpConfiguration(curvePosition < 0.5f ? middleConfiguration : topConfiguration, curvePosition < 0.5f ? bottomConfiguration : middleConfiguration, curvePosition * 2 - (curvePosition < 0.5f ? 0 : 1));
+            FreeFollowConfig avgConfig = null;
+            if (curvePosition < 0.5f) { avgConfig = LerpConfiguration(middleConfiguration, bottomConfiguration, curvePosition * 2); }
+            else { avgConfig = LerpConfiguration(topConfiguration, middleConfiguration, curvePosition * 2 - 1); }
 
-            pitch = avgConfig.pitch;
-            roll = avgConfig.roll;
-            fov = avgConfig.fov;
+            if (avgConfig != null)
+            {
+                pitch = avgConfig.pitch;
+                roll = avgConfig.roll;
+                fov = avgConfig.fov;
+            }
         }
     }
 

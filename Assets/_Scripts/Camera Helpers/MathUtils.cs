@@ -15,7 +15,7 @@ public static class MathUtils
     public static Vector3 LinearBezier(Vector3 A, Vector3 B, float t)
     {
         return (1-t) * A + t * B;
-        //return (B - A).normalized * (Vector3.Distance(A, B) / t);
+        //return A + ((B - A).normalized * (Vector3.Distance(A, B) / t));
     }
 
     public static Vector3 QuadraticBezier(Vector3 A, Vector3 B, Vector3 C, float t)

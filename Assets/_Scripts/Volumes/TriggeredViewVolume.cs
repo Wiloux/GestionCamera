@@ -42,16 +42,19 @@ public class TriggeredViewVolume : AViewVolume
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.green;
-
+        
         try
         {
             BoxCollider boxCollider = (BoxCollider)GetComponent<Collider>();
             if (boxCollider)
             {
+                Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+                Gizmos.matrix = rotationMatrix;
+
                 if (gizmoFilled)
-                { Gizmos.color *= new Vector4(1, 1, 1, 0.3f); Gizmos.DrawCube(transform.position + boxCollider.center, Vector3.Scale(boxCollider.size, transform.localScale)); }
+                { Gizmos.color *= new Vector4(1, 1, 1, 0.3f); Gizmos.DrawCube(boxCollider.center, boxCollider.size); }
                 else
-                { Gizmos.DrawWireCube(transform.position + boxCollider.center, Vector3.Scale(boxCollider.size, transform.localScale)); }
+                { Gizmos.DrawWireCube(boxCollider.center, boxCollider.size); }
                 return;
             }
         }
@@ -62,10 +65,13 @@ public class TriggeredViewVolume : AViewVolume
             SphereCollider sphereCollider = (SphereCollider)GetComponent<Collider>();
             if (sphereCollider)
             {
+                Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+                Gizmos.matrix = rotationMatrix;
+
                 if (gizmoFilled)
-                { Gizmos.DrawSphere(transform.position + sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z)); }
+                { Gizmos.DrawSphere(sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z)); }
                 else
-                { Gizmos.DrawWireSphere(transform.position + sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z)); }
+                { Gizmos.DrawWireSphere(sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z)); }
                 return;
             }
         }

@@ -79,24 +79,24 @@ public class CameraController : MonoBehaviour
             if (viewConfig != null)
             {
                 // Average Pitch and Roll
-                averagePitch += viewConfig.pitch * view.weight;
-                averageRoll += viewConfig.roll * view.weight;
+                averagePitch += viewConfig.pitch * view.Weight;
+                averageRoll += viewConfig.roll * view.Weight;
 
                 // Average Yaw
                 yawSum += new Vector2(Mathf.Cos(viewConfig.yaw * Mathf.Deg2Rad),
-                Mathf.Sin(viewConfig.yaw * Mathf.Deg2Rad)) * view.weight;
+                Mathf.Sin(viewConfig.yaw * Mathf.Deg2Rad)) * view.Weight;
 
                 // Average Pivot
-                averagePivot += viewConfig.pivot * view.weight;
+                averagePivot += viewConfig.pivot * view.Weight;
 
                 // Average Distance
-                averageDistance += viewConfig.distance * view.weight;
+                averageDistance += viewConfig.distance * view.Weight;
 
                 // Average FOV
-                averageFOV += viewConfig.fov * view.weight;
+                averageFOV += viewConfig.fov * view.Weight;
 
                 // Sum of all Views Weights -> used in averaging later
-                sumWeights += view.weight;
+                sumWeights += view.Weight;
 
                 validViews++;
             }

@@ -17,6 +17,10 @@ public class SphereViewVolume : AViewVolume
         if (innerRadius < 0) { innerRadius = 0; }
         if (outerRadius < innerRadius) { outerRadius = innerRadius; }
     }
+    private void Start()
+    {
+        if (view) { view.Weight = 0; }
+    }
 
     private void Update()
     {

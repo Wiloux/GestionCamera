@@ -19,7 +19,7 @@ public abstract class AViewVolume : MonoBehaviour
         if(ViewVolumeBlender.Instance)
         {
             if (isActive) { ViewVolumeBlender.Instance.AddVolume(this); }
-            else { ViewVolumeBlender.Instance.RemoveVolume(this); }
+            else { ViewVolumeBlender.Instance.RemoveVolume(this); if (view) { view.ResetWeight(); } }
             IsActive = isActive;
 
             if (isCutOnSwitch)

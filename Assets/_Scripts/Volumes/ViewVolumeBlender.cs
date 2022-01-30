@@ -53,8 +53,8 @@ public class ViewVolumeBlender : MonoBehaviour
 
             foreach (AViewVolume volume in activeViewVolumes)
             {
-                if (volume.priority < maxPriorityVolume.priority) { volume.view.weight = 0; continue; }
-                volume.view.weight = Mathf.Max(volume.view.weight, volume.ComputeSelfWeight());
+                if (volume.priority < maxPriorityVolume.priority) { volume.view.Weight = 0; continue; }
+                volume.view.Weight = Mathf.Max(volume.view.Weight, volume.ComputeSelfWeight());
             }
         }
     }

@@ -8,7 +8,6 @@ public class TriggeredViewVolume : AViewVolume
     public LayerMask target = 0;
     private int targetLayer = 0;
 
-    public bool gizmoFilled = false;
 
     private void Start() 
     {
@@ -18,7 +17,7 @@ public class TriggeredViewVolume : AViewVolume
         gameObject.GetComponent<Rigidbody>().isKinematic = true;
 
         // Detect if target was inside from start
-        BoxCollider boxCollider = (BoxCollider)GetComponent<Collider>();
+        BoxCollider boxCollider = GetComponent<BoxCollider>();
         if (boxCollider) 
         {
             Collider[] objectsInside = Physics.OverlapBox(transform.position + boxCollider.center, Vector3.Scale(boxCollider.size, transform.localScale) / 2, transform.rotation, target);
@@ -26,7 +25,7 @@ public class TriggeredViewVolume : AViewVolume
             return; 
         }
 
-        SphereCollider sphereCollider = (SphereCollider)GetComponent<Collider>();
+        SphereCollider sphereCollider = GetComponent<SphereCollider>();
         if (sphereCollider) 
         {
             Collider[] objectsInside = Physics.OverlapSphere(transform.position + sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z), target);
@@ -41,38 +40,30 @@ public class TriggeredViewVolume : AViewVolume
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.green * new Vector4(1, 1, 1, 0.3f);
         
         try
         {
-            BoxCollider boxCollider = (BoxCollider)GetComponent<Collider>();
+            BoxCollider boxCollider = GetComponent<BoxCollider>();
             if (boxCollider)
             {
                 Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
                 Gizmos.matrix = rotationMatrix;
 
-                if (gizmoFilled)
-                { Gizmos.color *= new Vector4(1, 1, 1, 0.3f); Gizmos.DrawCube(boxCollider.center, boxCollider.size); }
-                else
-                { Gizmos.DrawWireCube(boxCollider.center, boxCollider.size); }
-                return;
+                Gizmos.DrawCube(boxCollider.center, boxCollider.size);
             }
         }
         catch(System.Exception) { }
 
         try
         {
-            SphereCollider sphereCollider = (SphereCollider)GetComponent<Collider>();
+            SphereCollider sphereCollider = GetComponent<SphereCollider>();
             if (sphereCollider)
             {
                 Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 Gizmos.matrix = rotationMatrix;
 
-                if (gizmoFilled)
-                { Gizmos.DrawSphere(sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z)); }
-                else
-                { Gizmos.DrawWireSphere(sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z)); }
-                return;
+                Gizmos.DrawSphere(sphereCollider.center, sphereCollider.radius * Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z));
             }
         }
         catch (System.Exception) { }

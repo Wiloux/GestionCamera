@@ -35,7 +35,7 @@ public class FreeFollowView : AView
     {
         if (curve && target)
         {
-            yaw += -Input.GetAxis("Mouse X") * yawSpeed;
+            yaw += Input.GetAxis("Mouse X") * yawSpeed;
             if (yaw > 180) { while (yaw > 180) { yaw -= 360; } }
             if (yaw < -180) { while (yaw < -180) { yaw += 360; } }
 
